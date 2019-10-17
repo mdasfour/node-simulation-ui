@@ -23,4 +23,4 @@
 
 
 
-![alt text](https://github.com/mdasfour/node-simulation-ui/images/NodeSimulationUI.png "Node Simulation UI")
+![alt text](https://github.com/mdasfour/node-simulation-ui/blob/master/images/NodeSimulationUI.png "Node Simulation UI")
