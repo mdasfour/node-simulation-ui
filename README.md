@@ -7,7 +7,7 @@
 - [Vuetify (2.0.0)](https://vuetifyjs.com/en/) - Material Design Component Framework
 - [Axios (0.19.0)](https://github.com/axios/axios) - Promised based HTTP client for the browser
 
-**NOTE: You must run the frontend of the project in Chrome.  This is due to CORS, which interferes with the proper operation of the app.  The developer of this app has tried to tweak and even completely disable it, but to no avail.  This is an issue that other developers have struggled with.  You will need to install the `Allow CORS: Access-Control-Allow-Origin` extension from the [Chrome Store](https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en-US).**
+**NOTE: You must run the frontend of the project in Chrome.  This is due to [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS), which interferes with the proper operation of the app.  The developer of this app has tried to tweak and even completely disable it, but to no avail.  This is an issue that other developers have struggled with.  You will need to install the `Allow CORS: Access-Control-Allow-Origin` extension from the [Chrome Store](https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en-US).**
 
 **Please make sure that you have cloned and ran the backend of the Node Simulation Web Application, before running the frontend.**
 
