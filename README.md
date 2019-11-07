@@ -20,7 +20,7 @@
 
 4. At the prompt type `npm install`.  This will install the necessary dependencies in order to run the application.
 
-5. Once Step 4 has been successfully completed, run `npm run serve` at the command prompt.
+5. Once Step 4 has been successfully completed, type `npm run serve` at the command prompt.
 
 
 
