@@ -1,6 +1,6 @@
 <template>
     <v-container
-        fluid="true"
+        fluid
         v-if="error"
         v-cloak
         class="animated pulse infinite"
@@ -30,7 +30,7 @@
             </v-layout>
         </v-flex>
     </v-container>
-    <v-container v-else v-cloak fluid="true" text-xs-center>
+    <v-container v-else v-cloak fluid text-xs-center>
         <v-flex xl12 mt-10>
             <v-layout justify-center>
                 <v-data-table
@@ -48,9 +48,11 @@
                             <td>
                                 <v-btn
                                     class="white--text"
+                                    :title="getButtonToolTip(item.isOnline)"
                                     :color="
                                         getOnlineStatusColour(item.isOnline)
                                     "
+                                    
                                     @click="changeStatus(item)"
                                     >{{
                                         item.isOnline ? 'Online' : 'Offline'
@@ -83,11 +85,12 @@
                                 <v-icon
                                     small
                                     class="mr-2"
+                                    title="Edit"
                                     @click="editItem(item)"
                                 >
                                     mdi-pencil
                                 </v-icon>
-                                <v-icon small @click="deleteItem(item.nodeId)">
+                                <v-icon small title="Delete" @click="deleteItem(item.nodeId)">
                                     mdi-delete
                                 </v-icon>
                             </td>
@@ -131,6 +134,7 @@
                                                     <v-text-field
                                                         v-model="addItem.city"
                                                         label="City"
+                                                        placeholder="e.g. Toronto"
                                                     ></v-text-field>
                                                 </v-col>
                                                 <v-col cols="12" sm="6" md="4">
@@ -226,7 +230,7 @@
                     </template>
 
                     <template v-slot:no-data>
-                        <v-btn color="primary" @click="initialize">Reset</v-btn>
+                        <v-btn color="primary" @click="getNodes()">Reload</v-btn>
                     </template>
                 </v-data-table>
             </v-layout>
@@ -283,7 +287,7 @@ import moment from 'moment';
 export default {
     name: 'Admin',
     async created() {
-        await this.getNodes(apiConfig.fetch.url, apiConfig.fetch.method, {});
+        await this.getNodes();
     },
     data: () => ({
         loading: false,
@@ -331,7 +335,7 @@ export default {
         ],
         addItem: {
             nodeId: 0,
-            city: ' ',
+            city: '',
             maxUploadUtilization: 0,
             maxDownloadUtilization: 0,
             maxConnectedClients: 0,
@@ -379,60 +383,64 @@ export default {
                 return 'red';
             }
         },
-        httpClient(url, method, params = null, callbackFunction) {
-            this.loading = true;
-            this.errorMessageDetailText = '';
-            try {
-                this.$http({
-                    url: url,
-                    method: method,
-                    data: params
-                })
-                    .then(result => {
-                        this.loading = false;
-                        this.error = false;
-                    })
-                    .catch(error => {
-                        this.showNotification('error', error);
-                        this.loading = false;
-                        this.errorMessageDetailText = error;
-                    })
-                    .finally(() => {
-                        if (typeof callbackFunction === 'function') {
-                            callbackFunction();
-                        }
-                    });
-            } catch (error) {
-                this.showNotification('error', error);
-                this.loading = false;
-                this.errorMessageDetailText = error;
-            }
+
+        getButtonToolTip(item){
+            if(item)
+                return 'Turn Node Offline';
+            else
+                return 'Turn Node Online';
         },
-        getNodes(url, method, params = null) {
+
+        getNodes(nodeId = null) {
             this.loading = true;
             this.errorMessageDetailText = '';
-            try {
-                this.$http({
-                    url: url,
-                    method: method,
-                    data: params
-                })
-                    .then(result => {
-                        if (result.data.length) {
-                            this.nodes = Object.freeze(result.data);
-                            this.loading = false;
-                            this.error = false;
-                        }
+
+            if (nodeId && nodeId != null) {
+                try {
+                    this.$http({
+                        url: apiConfig.fetch.url.concat(nodeId),
+                        method: apiConfig.fetch.method
                     })
-                    .catch(error => {
-                        this.showNotification('error', error);
-                        this.loading = false;
-                        this.errorMessageDetailText = error;
-                    });
-            } catch (error) {
-                this.showNotification('error', error);
-                this.loading = false;
-                this.errorMessageDetailText = error;
+                        .then(result => {
+                            if (result.data.length) {
+                                this.nodes = Object.freeze(result.data);
+                                this.loading = false;
+                                this.error = false;
+                            }
+                        })
+                        .catch(error => {
+                            this.showNotification('error', error);
+                            this.loading = false;
+                            this.errorMessageDetailText = error;
+                        });
+                } catch (error) {
+                    this.showNotification('error', error);
+                    this.loading = false;
+                    this.errorMessageDetailText = error;
+                }
+            } else {
+                try {
+                    this.$http({
+                        url: apiConfig.fetch.url,
+                        method: apiConfig.fetch.method
+                    })
+                        .then(result => {
+                            if (result.data.length) {
+                                this.nodes = Object.freeze(result.data);
+                                this.loading = false;
+                                this.error = false;
+                            }
+                        })
+                        .catch(error => {
+                            this.showNotification('error', error);
+                            this.loading = false;
+                            this.errorMessageDetailText = error;
+                        });
+                } catch (error) {
+                    this.showNotification('error', error);
+                    this.loading = false;
+                    this.errorMessageDetailText = error;
+                }
             }
         },
         showNotification(type, message, timeout = 3000) {
@@ -449,30 +457,34 @@ export default {
         },
 
         deleteItem(nodeId) {
+            this.errorMessageHeaderText = '';
             this.currentNodeId = nodeId;
             this.deleteDialog = true;
 
             if (this.confirmDelete) {
-                this.httpClient(
-                    apiConfig.delete.url
-                        .concat('?')
-                        .concat('nodeId=')
-                        .concat(nodeId),
-                    'post',
-                    {}
-                );
-
-                setTimeout(() => {
-                    this.getNodes(
-                        apiConfig.fetch.url,
-                        apiConfig.fetch.method,
-                        {}
-                    );
-                }, 250);
-
-                this.confirmDelete = false;
-                this.deleteDialog = false;
-                this.currentNodeId = null;
+                try {
+                    this.$http({
+                        url: apiConfig.delete.url.concat(this.currentNodeId),
+                        method: apiConfig.delete.method
+                    })
+                        .then(result => {
+                            this.showNotification('success', result.data);
+                            this.loading = false;
+                            this.confirmDelete = false;
+                            this.deleteDialog = false;
+                            this.currentNodeId = null;
+                            this.getNodes();
+                        })
+                        .catch(error => {
+                            this.showNotification('error', error);
+                            this.loading = false;
+                            this.errorMessageDetailText = error;
+                        });
+                } catch (error) {
+                    this.showNotification('error', error);
+                    this.loading = false;
+                    this.errorMessageDetailText = error;
+                }
             }
         },
 
@@ -488,28 +500,50 @@ export default {
         },
         changeStatus(item) {
             if (item.isOnline) {
-                this.httpClient(
-                    apiConfig.offline.url
-                        .concat('?')
-                        .concat('nodeId=')
-                        .concat(item.nodeId),
-                    'post',
-                    {}
-                );
+                try {
+                    this.$http({
+                        url: apiConfig.offline.url,
+                        method: apiConfig.offline.method,
+                        data: { NodeId: item.nodeId }
+                    })
+                        .then(result => {
+                            this.showNotification('success', result.data);
+                            this.loading = false;
+                            this.getNodes();
+                        })
+                        .catch(error => {
+                            this.showNotification('error', error);
+                            this.loading = false;
+                            this.errorMessageDetailText = error;
+                        });
+                } catch (error) {
+                    this.showNotification('error', error);
+                    this.loading = false;
+                    this.errorMessageDetailText = error;
+                }
             } else {
-                this.httpClient(
-                    apiConfig.online.url
-                        .concat('?')
-                        .concat('nodeId=')
-                        .concat(item.nodeId),
-                    'post',
-                    {}
-                );
+                try {
+                    this.$http({
+                        url: apiConfig.online.url,
+                        method: apiConfig.online.method,
+                        data: { NodeId: item.nodeId }
+                    })
+                        .then(result => {
+                            this.showNotification('success', result.data);
+                            this.loading = false;
+                            this.getNodes();
+                        })
+                        .catch(error => {
+                            this.showNotification('error', error);
+                            this.loading = false;
+                            this.errorMessageDetailText = error;
+                        });
+                } catch (error) {
+                    this.showNotification('error', error);
+                    this.loading = false;
+                    this.errorMessageDetailText = error;
+                }
             }
-
-            setTimeout(() => {
-                this.getNodes(apiConfig.fetch.url, apiConfig.fetch.method, {});
-            }, 250);
         },
         save() {
             if (this.addNodeDialog) {

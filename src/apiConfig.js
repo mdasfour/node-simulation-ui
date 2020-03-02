@@ -5,7 +5,7 @@ const baseUrl = `http://${hostname}:${port}/NodeManager/${apiVersion}`;
 
 export const apiConfig = {
     fetch: {
-        url: baseUrl.concat('/Nodes'),
+        url: baseUrl.concat('/Nodes/'),
         method: 'get'
     },
     create: {
@@ -13,8 +13,8 @@ export const apiConfig = {
         method: 'post'
     },
     delete: {
-        url: baseUrl.concat('/RemoveNode'),
-        method: 'post'
+        url: baseUrl.concat('/RemoveNode/'),
+        method: 'delete'
     },
     online: {
         url: baseUrl.concat('/Online'),
