@@ -52,7 +52,6 @@
                                     :color="
                                         getOnlineStatusColour(item.isOnline)
                                     "
-                                    
                                     @click="changeStatus(item)"
                                     >{{
                                         item.isOnline ? 'Online' : 'Offline'
@@ -90,7 +89,11 @@
                                 >
                                     mdi-pencil
                                 </v-icon>
-                                <v-icon small title="Delete" @click="deleteItem(item.nodeId)">
+                                <v-icon
+                                    small
+                                    title="Delete"
+                                    @click="deleteItem(item.nodeId)"
+                                >
                                     mdi-delete
                                 </v-icon>
                             </td>
@@ -230,7 +233,9 @@
                     </template>
 
                     <template v-slot:no-data>
-                        <v-btn color="primary" @click="getNodes()">Reload</v-btn>
+                        <v-btn color="primary" @click="getNodes()"
+                            >Reload</v-btn
+                        >
                     </template>
                 </v-data-table>
             </v-layout>
@@ -377,18 +382,13 @@ export default {
     },
     methods: {
         getOnlineStatusColour(item) {
-            if (item) {
-                return 'green';
-            } else {
-                return 'red';
-            }
+            if (item) return 'green';
+            else return 'red';
         },
 
-        getButtonToolTip(item){
-            if(item)
-                return 'Turn Node Offline';
-            else
-                return 'Turn Node Online';
+        getButtonToolTip(item) {
+            if (item) return 'Turn Node Offline';
+            else return 'Turn Node Online';
         },
 
         getNodes(nodeId = null) {
@@ -502,7 +502,7 @@ export default {
             if (item.isOnline) {
                 try {
                     this.$http({
-                        url: apiConfig.offline.url,
+                        url: apiConfig.offline.url.concat(item),
                         method: apiConfig.offline.method,
                         data: { NodeId: item.nodeId }
                     })
@@ -524,7 +524,7 @@ export default {
             } else {
                 try {
                     this.$http({
-                        url: apiConfig.online.url,
+                        url: apiConfig.online.url.concat(item),
                         method: apiConfig.online.method,
                         data: { NodeId: item.nodeId }
                     })
@@ -555,20 +555,40 @@ export default {
                     this.addItem.maxErrorRate != null &&
                     this.addItem.maxConnectedClients != null
                 ) {
-                    this.httpClient(apiConfig.create.url, 'post', {
-                        nodeId: Number(this.addItem.nodeId),
-                        city: this.addItem.city,
-                        maxUploadUtilization: Number(
-                            this.addItem.maxUploadUtilization
-                        ),
-                        maxDownloadUtilization: Number(
-                            this.addItem.maxDownloadUtilization
-                        ),
-                        maxErrorRate: Number(this.addItem.maxErrorRate),
-                        maxConnectedClients: Number(
-                            this.addItem.maxConnectedClients
-                        )
-                    });
+                    try {
+                        this.$http({
+                            url: apiConfig.create.url,
+                            method: apiConfig.create.method,
+                            data: {
+                                nodeId: Number(this.addItem.nodeId),
+                                city: this.addItem.city,
+                                maxUploadUtilization: Number(
+                                    this.addItem.maxUploadUtilization
+                                ),
+                                maxDownloadUtilization: Number(
+                                    this.addItem.maxDownloadUtilization
+                                ),
+                                maxErrorRate: Number(this.addItem.maxErrorRate),
+                                maxConnectedClients: Number(
+                                    this.addItem.maxConnectedClients
+                                )
+                            }
+                        })
+                            .then(result => {
+                                this.showNotification('success', result.data);
+                                this.loading = false;
+                                this.getNodes();
+                            })
+                            .catch(error => {
+                                this.showNotification('error', error);
+                                this.loading = false;
+                                this.errorMessageDetailText = error;
+                            });
+                    } catch (error) {
+                        this.showNotification('error', error);
+                        this.loading = false;
+                        this.errorMessageDetailText = error;
+                    }
                 }
             } else {
                 if (
@@ -577,25 +597,44 @@ export default {
                     this.editedItem.maxErrorRate != null &&
                     this.editedItem.maxConnectedClients != null
                 ) {
-                    this.httpClient(apiConfig.maxLimits.url, 'post', {
-                        nodeId: Number(this.editedItem.nodeId),
-                        maxUploadUtilization: Number(
-                            this.editedItem.maxUploadUtilization
-                        ),
-                        maxDownloadUtilization: Number(
-                            this.editedItem.maxDownloadUtilization
-                        ),
-                        maxErrorRate: Number(this.editedItem.maxErrorRate),
-                        maxConnectedClients: Number(
-                            this.editedItem.maxConnectedClients
-                        )
-                    });
+                    try {
+                        this.$http({
+                            url: apiConfig.maxLimits.url,
+                            method: apiConfig.maxLimits.method,
+                            data: {
+                                nodeId: Number(this.editedItem.nodeId),
+                                maxUploadUtilization: Number(
+                                    this.editedItem.maxUploadUtilization
+                                ),
+                                maxDownloadUtilization: Number(
+                                    this.editedItem.maxDownloadUtilization
+                                ),
+                                maxErrorRate: Number(
+                                    this.editedItem.maxErrorRate
+                                ),
+                                maxConnectedClients: Number(
+                                    this.editedItem.maxConnectedClients
+                                )
+                            }
+                        })
+                            .then(result => {
+                                this.showNotification('success', result.data);
+                                this.loading = false;
+                                this.getNodes();
+                            })
+                            .catch(error => {
+                                this.showNotification('error', error);
+                                this.loading = false;
+                                this.errorMessageDetailText = error;
+                            });
+                    } catch (error) {
+                        this.showNotification('error', error);
+                        this.loading = false;
+                        this.errorMessageDetailText = error;
+                    }
                 }
             }
 
-            setTimeout(() => {
-                this.getNodes(apiConfig.fetch.url, apiConfig.fetch.method, {});
-            }, 250);
             this.close();
         }
     }

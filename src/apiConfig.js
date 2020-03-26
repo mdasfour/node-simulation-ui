@@ -17,12 +17,12 @@ export const apiConfig = {
         method: 'delete'
     },
     online: {
-        url: baseUrl.concat('/Online'),
-        method: 'post'
+        url: baseUrl.concat('/Online/'),
+        method: 'patch'
     },
     offline: {
-        url: baseUrl.concat('/Offline'),
-        method: 'post'
+        url: baseUrl.concat('/Offline/'),
+        method: 'patch'
     },
     maxLimits: {
         url: baseUrl.concat('/MaxLimits'),
