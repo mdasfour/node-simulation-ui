@@ -502,9 +502,8 @@ export default {
             if (item.isOnline) {
                 try {
                     this.$http({
-                        url: apiConfig.offline.url.concat(item),
-                        method: apiConfig.offline.method,
-                        data: { NodeId: item.nodeId }
+                        url: apiConfig.offline.url.concat(item.nodeId),
+                        method: apiConfig.offline.method
                     })
                         .then(result => {
                             this.showNotification('success', result.data);
@@ -524,9 +523,8 @@ export default {
             } else {
                 try {
                     this.$http({
-                        url: apiConfig.online.url.concat(item),
-                        method: apiConfig.online.method,
-                        data: { NodeId: item.nodeId }
+                        url: apiConfig.online.url.concat(item.nodeId),
+                        method: apiConfig.online.method
                     })
                         .then(result => {
                             this.showNotification('success', result.data);
